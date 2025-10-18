@@ -1,0 +1,58 @@
+# Wrangler configuration for Trusted Collaboration Tunnel Worker
+# Documentation: https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "tct-worker"
+main = "trusted-collab-worker.js"
+compatibility_date = "2024-10-01"
+
+# Account ID - get from: wrangler whoami
+# account_id = "your-cloudflare-account-id"
+
+# Environment variables (non-sensitive)
+# For sensitive values (API_KEYS, RECEIPT_HMAC_KEY), use: wrangler secret put <NAME>
+[vars]
+# AUTH_MODE = "api_key"                    # Uncomment to enable authentication
+# TERMS_URL = "https://yourdomain.com/ai-policy"
+# PRICING_URL = "https://yourdomain.com/ai-pricing"
+# SITEMAP_PATH = "/llm-sitemap.json"
+# MANIFEST_PATH = "/llms.txt"
+
+# Secrets (use wrangler CLI to set these, never commit to git):
+# wrangler secret put API_KEYS
+# wrangler secret put RECEIPT_HMAC_KEY
+
+# Routes - uncomment and update with your domain
+# [[routes]]
+# pattern = "yourdomain.com/llm*"
+# zone_name = "yourdomain.com"
+
+# [[routes]]
+# pattern = "yourdomain.com/llm-sitemap.json"
+# zone_name = "yourdomain.com"
+
+# [[routes]]
+# pattern = "yourdomain.com/llms.txt"
+# zone_name = "yourdomain.com"
+
+# Development configuration
+[env.development]
+name = "tct-worker-dev"
+
+[env.development.vars]
+# AUTH_MODE = "api_key"
+# API_KEYS = "dev-test-key-123"           # Dev only - use secrets in production!
+# TERMS_URL = "https://dev.yourdomain.com/ai-policy"
+# PRICING_URL = "https://dev.yourdomain.com/ai-pricing"
+
+# Production configuration
+[env.production]
+name = "tct-worker-prod"
+
+# Use wrangler secrets for production:
+# wrangler secret put API_KEYS --env production
+# wrangler secret put RECEIPT_HMAC_KEY --env production
+
+# Deployment commands:
+# - Development: wrangler deploy --env development
+# - Production:  wrangler deploy --env production
+# - Live logs:   wrangler tail --env production
