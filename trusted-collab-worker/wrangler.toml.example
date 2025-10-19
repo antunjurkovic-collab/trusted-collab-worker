@@ -1,0 +1,207 @@
+# Cloudflare Worker Configuration for Trusted Collaboration Tunnel
+# Copy this file to wrangler.toml and configure for your environment
+
+name = "trusted-collab-worker"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# Account and Zone Configuration
+# Get these from your Cloudflare dashboard
+account_id = "your-account-id-here"      # Required: Your Cloudflare account ID
+# zone_id = "your-zone-id-here"          # Optional: For zone-specific routes
+
+# Worker Type
+workers_dev = true                        # Enable workers.dev subdomain for testing
+
+# Routes - Configure which URLs this worker handles
+# Uncomment and modify for your domain
+
+# [[routes]]
+# pattern = "example.com/llm-sitemap.json"
+# zone_name = "example.com"
+
+# [[routes]]
+# pattern = "example.com/*/llm/*"
+# zone_name = "example.com"
+
+# [[routes]]
+# pattern = "example.com/llms.txt"
+# zone_name = "example.com"
+
+# Environment Variables (Non-Sensitive)
+# For sensitive values (API_KEYS, RECEIPT_KEY), use: wrangler secret put KEY_NAME
+
+[vars]
+# Optional: Terms of Service URL (Link: rel="terms")
+# TERMS_URL = "https://example.com/terms"
+
+# Optional: Pricing/Payment URL (Link: rel="payment" or rel="pricing")
+# PRICING_URL = "https://example.com/pricing"
+
+# Optional: Origin server base URL (if different from request host)
+# ORIGIN_BASE = "https://origin.example.com"
+
+# Optional: Enable debug logging (true/false)
+# DEBUG = false
+
+# Secrets (Set via CLI - DO NOT PUT IN THIS FILE)
+# These should be set using: wrangler secret put SECRET_NAME
+#
+# API_KEYS       - Comma-separated list of valid API keys
+#                  Example: wrangler secret put API_KEYS
+#                  Value: "key1_32chars_minimum,key2_32chars_minimum"
+#
+# RECEIPT_KEY    - HMAC secret for usage receipt signing (32+ bytes)
+#                  Example: wrangler secret put RECEIPT_KEY
+#                  Value: (same as origin server's tct_receipt_hmac_key)
+
+# Build Configuration
+[build]
+# command = "npm run build"              # Build command if needed
+# watch_dirs = ["src"]                   # Directories to watch for changes
+
+# Cloudflare Features
+[compatibility_flags]
+# nodejs_compat = true                   # Enable Node.js compatibility if needed
+
+# Development Configuration
+[dev]
+port = 8787                               # Local dev server port
+local_protocol = "http"                   # Use http for local dev
+
+# Production Environment (optional)
+# Uncomment and configure for production deployment
+
+# [env.production]
+# name = "trusted-collab-worker-prod"
+# workers_dev = false
+#
+# [[env.production.routes]]
+# pattern = "example.com/llm-sitemap.json"
+# zone_name = "example.com"
+#
+# [[env.production.routes]]
+# pattern = "example.com/*/llm/*"
+# zone_name = "example.com"
+#
+# [env.production.vars]
+# TERMS_URL = "https://example.com/terms"
+# PRICING_URL = "https://example.com/pricing"
+# DEBUG = false
+
+# Staging Environment (optional)
+
+# [env.staging]
+# name = "trusted-collab-worker-staging"
+# workers_dev = true
+#
+# [env.staging.vars]
+# TERMS_URL = "https://staging.example.com/terms"
+# PRICING_URL = "https://staging.example.com/pricing"
+# DEBUG = true
+
+# =============================================================================
+# SETUP INSTRUCTIONS
+# =============================================================================
+
+# 1. Copy this file to wrangler.toml:
+#    cp wrangler.toml.example wrangler.toml
+
+# 2. Edit wrangler.toml with your configuration:
+#    - Replace "your-account-id-here" with your Cloudflare account ID
+#    - Replace "example.com" with your domain
+#    - Uncomment and configure routes for your domain
+
+# 3. Set secrets (DO NOT put in wrangler.toml):
+#    wrangler secret put API_KEYS
+#    wrangler secret put RECEIPT_KEY
+
+# 4. Test locally:
+#    wrangler dev
+
+# 5. Deploy to Cloudflare:
+#    wrangler deploy
+
+# 6. Deploy to production environment:
+#    wrangler deploy --env production
+
+# =============================================================================
+# ENVIRONMENT VARIABLE REFERENCE
+# =============================================================================
+
+# REQUIRED SECRETS (set via wrangler secret put):
+# ------------------------------------------------
+# API_KEYS         Comma-separated API keys for authentication
+#                  Format: "key1,key2,key3"
+#                  Minimum 32 characters per key
+#                  Only required if using API key authentication
+#
+# RECEIPT_KEY      HMAC secret for usage receipt signing
+#                  Minimum 32 bytes (256 bits)
+#                  Must match origin server's tct_receipt_hmac_key
+#                  Only required if generating usage receipts
+
+# OPTIONAL ENVIRONMENT VARIABLES (set in [vars]):
+# ------------------------------------------------
+# TERMS_URL        URL to terms of service page
+#                  Adds Link: <url>; rel="terms" header
+#                  Example: "https://example.com/terms"
+#
+# PRICING_URL      URL to pricing/payment page
+#                  Adds Link: <url>; rel="payment" header
+#                  Example: "https://example.com/pricing"
+#
+# ORIGIN_BASE      Origin server base URL
+#                  Default: Uses request host
+#                  Example: "https://origin.example.com"
+#
+# DEBUG            Enable debug logging to console
+#                  Values: true | false
+#                  Default: false
+
+# =============================================================================
+# CLOUDFLARE DASHBOARD CONFIGURATION
+# =============================================================================
+
+# After deploying, configure these in Cloudflare dashboard:
+
+# 1. Rate Limiting:
+#    - /llm-sitemap.json: 60 req/min per IP
+#    - /*/llm/*: 120 req/min per IP
+
+# 2. Firewall Rules:
+#    - Allow known-good bot User-Agents
+#    - Block suspicious patterns
+
+# 3. SSL/TLS:
+#    - Mode: Full (strict)
+#    - Always Use HTTPS: Enabled
+#    - Automatic HTTPS Rewrites: Enabled
+
+# 4. Caching:
+#    - Cache Level: Standard
+#    - Browser Cache TTL: Respect Existing Headers
+#    - Always Online: Off (for dynamic content)
+
+# 5. Performance:
+#    - HTTP/2: Enabled
+#    - HTTP/3 (with QUIC): Enabled
+#    - 0-RTT Connection Resumption: Enabled
+
+# =============================================================================
+# SECURITY CHECKLIST
+# =============================================================================
+
+# Before production deployment:
+# - [ ] wrangler.toml.example committed (NOT wrangler.toml)
+# - [ ] wrangler.toml added to .gitignore
+# - [ ] Secrets set via wrangler secret put (not in config)
+# - [ ] API keys minimum 32 characters, cryptographically random
+# - [ ] HMAC key minimum 32 bytes, matches origin server
+# - [ ] Routes scoped appropriately (not wildcard entire domain)
+# - [ ] Rate limiting configured in Cloudflare dashboard
+# - [ ] SSL/TLS mode: Full (strict)
+# - [ ] Tested with staging environment first
+# - [ ] Monitoring/alerts configured
+
+# =============================================================================
