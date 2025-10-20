@@ -33,9 +33,14 @@ export default {
         const cUrl = `${url.protocol}//${url.host}${cPath}`;
         headers.append('Link', `<${cUrl}>; rel="canonical"`);
       }
-      // Policy links
-      if (env.TERMS_URL) headers.append('Link', `<${env.TERMS_URL}>; rel="terms"`);
-      if (env.PRICING_URL) headers.append('Link', `<${env.PRICING_URL}>; rel="pricing"`);
+      // Policy links (IANA-registered relation types) - only if not already present
+      const link = headers.get('Link') || '';
+      if (env.TERMS_URL && !/;\s*rel=\"?terms/i.test(link)) {
+        headers.append('Link', `<${env.TERMS_URL}>; rel="terms-of-service"`);
+      }
+      if (env.PRICING_URL && !/;\s*rel=\"?p(ricing|ayment)/i.test(link)) {
+        headers.append('Link', `<${env.PRICING_URL}>; rel="payment"`);
+      }
     }
 
     // Usage receipt (optional)
