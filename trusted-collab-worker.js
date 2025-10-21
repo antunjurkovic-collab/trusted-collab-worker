@@ -23,9 +23,20 @@ export default {
     let resp = await fetch(request);
     const headers = new Headers(resp.headers);
 
+    // Normalize headers for LLM endpoints, sitemap, and manifest
+    if (isLLMEndpoint || isSitemap || isManifest) {
+      // Set CDN-friendly Cache-Control (override origin to ensure correct caching)
+      headers.set('Cache-Control', 'max-age=0, must-revalidate, stale-while-revalidate=60, stale-if-error=86400, public');
+
+      // Clean up origin cache headers that interfere with CDN caching
+      headers.delete('Pragma');
+      headers.delete('Expires');
+      headers.delete('X-LiteSpeed-Cache-Control');
+    }
+
     // Inject canonical Link on llm endpoints if missing
     if (isLLMEndpoint) {
-      const link = headers.get('Link') || '';
+      let link = headers.get('Link') || '';
       const hasCanonical = /;\s*rel=\"?canonical\"?/i.test(link);
       if (!hasCanonical) {
         // Compute canonical by stripping /llm/
@@ -34,7 +45,8 @@ export default {
         headers.append('Link', `<${cUrl}>; rel="canonical"`);
       }
       // Policy links (IANA-registered relation types) - only if not already present
-      const link = headers.get('Link') || '';
+      // Re-read Link header after potential canonical addition
+      link = headers.get('Link') || '';
       if (env.TERMS_URL && !/;\s*rel=\"?terms/i.test(link)) {
         headers.append('Link', `<${env.TERMS_URL}>; rel="terms-of-service"`);
       }

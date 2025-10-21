@@ -134,8 +134,8 @@ PRICING_URL = https://yourdomain.com/ai-pricing
 Result:
 ```http
 Link: <https://yourdomain.com/your-post/>; rel="canonical"
-Link: <https://yourdomain.com/ai-policy>; rel="terms"
-Link: <https://yourdomain.com/ai-pricing>; rel="pricing"
+Link: <https://yourdomain.com/ai-policy>; rel="terms-of-service"
+Link: <https://yourdomain.com/ai-pricing>; rel="payment"
 ```
 
 AI crawlers discover your terms and pricing automatically.
