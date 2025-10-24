@@ -4,12 +4,15 @@ Edge-layer proxy for the Trusted Collaboration Tunnel (TCT) protocol. Adds heade
 
 ## Features
 
+- ✅ **Cache-Control Normalization** - Ensures CDN-friendly caching headers on M-URLs and sitemaps
 - ✅ **Canonical Link Injection** - Automatically adds `Link: <C-URL>; rel="canonical"` header if missing
-- ✅ **Policy Links** - Injects terms/pricing Link headers for AI policy discoverability
+- ✅ **Policy Links** - Injects IANA-registered `rel="terms-of-service"` and `rel="payment"` Link headers
+- ✅ **Profile Field Passthrough** - Forwards `"profile": "tct-1"` from origin JSON payloads
+- ✅ **Weak ETag Passthrough** - Forwards weak ETags `W/"sha256-..."` from origin
 - ✅ **Edge Authentication** - Optional API key validation (Bearer token or X-API-Key header)
 - ✅ **Usage Receipt Signing** - HMAC-SHA256 signed `AI-Usage-Receipt` headers on 200/304 responses
 - ✅ **Zero Dependencies** - Pure Cloudflare Workers runtime (Web Crypto API only)
-- ✅ **Pass-Through Mode** - Forwards all traffic to origin WordPress site
+- ✅ **Header-Only Processing** - No JSON parsing, preserves body integrity
 
 ## Requirements
 
@@ -210,12 +213,74 @@ AI Crawler → Cloudflare Edge (Worker) → Origin (WordPress + TCT Plugin) → 
 - ✅ Policy links injected at edge (no PHP changes needed)
 - ✅ Canonical link fallback (if origin forgets to add it)
 
+## Cache-Control Normalization
+
+The Worker automatically normalizes Cache-Control headers for M-URLs, sitemaps, and manifest files to ensure CDN-friendly caching:
+
+**Origin may send:**
+```http
+Cache-Control: no-cache, must-revalidate, max-age=0, no-store, private
+Pragma: no-cache
+Expires: Wed, 11 Jan 1984 05:00:00 GMT
+X-LiteSpeed-Cache-Control: no-cache
+```
+
+**Worker normalizes to:**
+```http
+Cache-Control: max-age=0, must-revalidate, stale-while-revalidate=60, stale-if-error=86400, public
+```
+
+**Headers removed:**
+- `Pragma` (deprecated HTTP/1.0 directive)
+- `Expires` (conflicts with Cache-Control)
+- `X-LiteSpeed-Cache-Control` (origin-specific, interferes with CDN)
+
+**Benefits:**
+- ✅ Enables CDN caching (removes `no-store`/`private`)
+- ✅ Allows stale content serving during revalidation (`stale-while-revalidate=60`)
+- ✅ Provides 24-hour error fallback (`stale-if-error=86400`)
+- ✅ Maintains freshness validation (`max-age=0, must-revalidate`)
+
+This normalization only applies to TCT endpoints (`/llm/`, `/llm-sitemap.json`, `/llms.txt`). Other traffic passes through unchanged.
+
+## Response Format
+
+The Worker passes through JSON payloads and ETags from the origin WordPress plugin without modification:
+
+**M-URL JSON (from origin, passed through):**
+```json
+{
+  "profile": "tct-1",
+  "llm_url": "https://example.com/post/llm/",
+  "canonical_url": "https://example.com/post/",
+  "hash": "sha256-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "title": "Article Title",
+  "content": { "text": "..." }
+}
+```
+
+**Headers (normalized by Worker):**
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=UTF-8
+Link: <https://example.com/post/>; rel="canonical"
+Link: <https://example.com/ai-policy/>; rel="terms-of-service"
+Link: <https://example.com/ai-pricing/>; rel="payment"
+ETag: W/"sha256-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+Cache-Control: max-age=0, must-revalidate, stale-while-revalidate=60, stale-if-error=86400, public
+Vary: Accept-Encoding
+```
+
+**Profile Field**: `"profile": "tct-1"` enables protocol versioning (passed through from origin).
+
+**Weak ETag**: `W/"sha256-..."` signals semantic equivalence per RFC 9110 (passed through from origin).
+
 ## Performance Impact
 
 - **Minimal latency:** <5ms added (HMAC signing only)
 - **Zero origin offload:** Worker forwards requests to origin
-- **Edge caching friendly:** Preserves all cache headers from origin
-- **No body transformation:** Pass-through mode (body not parsed)
+- **Edge caching friendly:** Normalizes cache headers for optimal CDN behavior
+- **No body transformation:** Pass-through mode (body not parsed, profile field preserved)
 
 ## Security
 
