@@ -36,3 +36,9 @@ yarn-error.log*
 *.key
 *.pem
 secrets.txt
+
+# Wrangler configuration with sensitive account info
+wrangler.toml
+
+# Wrangler build cache
+.wrangler/
