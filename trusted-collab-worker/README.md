@@ -334,15 +334,28 @@ Configure Cloudflare alerts for:
 
 MIT License - See [LICENSE](LICENSE)
 
-## Patent Notice
+## Licensing & Patent Notice
 
-This worker implements methods covered by **US Patent Application 63/895,763** (filed October 8, 2025, status: Patent Pending).
+### An Open, Royalty-Free Standard
 
-**For Website Owners:** FREE to use under MIT license for your own infrastructure.
+The Collaboration Tunnel Protocol (TCT) is an open standard designed to build a more efficient and sustainable web for the AI era.
 
-**For Commercial Use at Scale:** Large-scale deployments (>10,000 URLs/month) may require separate patent licensing. Contact: antunjurkovic@gmail.com
+The core protocol, as defined in **draft-jurkovikj-collab-tunnel**, is and always will be available for **anyone to implement** under a perpetual, irrevocable, **Royalty-Free (RF) license**. There is **no commercial licensing fee** for implementing the TCT standard.
 
-See [PATENTS.md](../wordpress/trusted-collab-tunnel/PATENTS.md) in the WordPress plugin for full patent licensing details.
+**Official IETF IPR Disclosure:** https://datatracker.ietf.org/ipr/7074/
+
+### Software License
+
+This implementation is licensed under **MIT** (see [LICENSE](LICENSE)).
+
+### Patent Status
+
+**US Patent Application 63/895,763**
+- Filed: October 8, 2025
+- Status: Patent Pending
+- Licensing: **Royalty-Free (RF)** under IETF IPR policy (RFC 8179)
+
+The provisional patent application covers the system and methods described in the TCT specification. Under the IETF Intellectual Property Rights policy, a Royalty-Free license is granted to all implementers of the standard.
 
 ## Resources
 
